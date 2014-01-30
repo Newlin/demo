@@ -30,10 +30,10 @@ app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
 app.use(app.router);
-process.env.PWD = process.cwd();
-app.use(express.static(process.env.PWD + '/dist'));
-app.use(express.static(path.join(__dirname, 'dist')));
-app.use(express.static(path.join(__dirname, 'test')));
+console.log(process.cwd());
+app.use(express.static(process.cwd() + '/dist'));
+//app.use(express.static(path.join(__dirname, 'dist')));
+//app.use(express.static(path.join(__dirname, 'test')));
 
 // development only
 if ('development' == app.get('env')) {
