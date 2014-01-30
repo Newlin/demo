@@ -29,10 +29,7 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
-app.use(app.router);
-console.log("static directory: " + process.cwd());
-app.use(express.static(process.cwd()));
-//app.use(express.static(path.join(__dirname, 'dist')));
+app.use(express.static(path.join(__dirname, 'dist')));
 //app.use(express.static(path.join(__dirname, 'test')));
 
 // development only
