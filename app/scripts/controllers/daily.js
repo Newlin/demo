@@ -2,12 +2,11 @@
 
 var dailyControllers = angular.module('dailyControllers', []);
 
-dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'DailyCategoryFailedTotals', 'DailyServiceTotals', 'DailyServiceFailedTotals', 'DailyFailedReasonTotals', 'DateUtil', '$routeParams', '$q',
-  function($scope, DailyCategoryTotals, DailyCategoryFailedTotals, DailyServiceTotals, DailyServiceFailedTotals, DailyFailedReasonTotals, DateUtil, $routeParams, $q) {
-  	$scope.isopen1 = true;
-  	$scope.isopen2 = true;
-  	$scope.isopen3 = true;
-	
+dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'DailyCategoryFailedTotals', 'DailyServiceTotals', 'DailyServiceFailedTotals', 'DailyFailedReasonTotals', 'DateUtil', '$routeParams', 'Activity', 'ActivityService',
+  function($scope, DailyCategoryTotals, DailyCategoryFailedTotals, DailyServiceTotals, DailyServiceFailedTotals, DailyFailedReasonTotals, DateUtil, $routeParams, Activity, ActivityService) {
+    ActivityService.get(function(activity) {
+   		Activity.setLastUpdate(activity.last_update);
+   	});	
   	function tooltipContentEditor(str, seriesIndex, pointIndex, plot) {
    		// display series_label, x-axis_tick, y-axis value
    		return plot.series[seriesIndex]["label"] + ", " + plot.data[seriesIndex][pointIndex];
@@ -17,61 +16,60 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
 	$scope.category = $routeParams.category;
 	$scope.weekStart = DateUtil.dateFormat(DateUtil.weekStart(selectedDt), "MM-DD-YYYY");
 	var weekstartInput = DateUtil.dateFormat(DateUtil.weekStart(selectedDt), "YYYYMMDD");
-	
-	function getDailyTotals(weekstart, category) {
-   		var d = $q.defer();
-   		var result;
-   		if (category == "All") {
-   			result = DailyCategoryTotals.get({weekstart: weekstart}, function() {
-        		d.resolve(result);
-   			});
-   		}
-   		else {
-   			result = DailyServiceTotals.get({weekstart: weekstart, category: category}, function() {
-        		d.resolve(result);
-   			});
-   		}	
-   		return d.promise;
+	if ($routeParams.category == "All") {
+		DailyCategoryTotals.get({weekstart: weekstartInput}, function(data) {
+			$scope.deliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen1 = true;
+    			loadSuccessfulChart(data);
+    		}
+    		else {
+    			$scope.isopen1 = false;
+    		}	
+		});
+		DailyCategoryFailedTotals.get({weekstart: weekstartInput}, function(data) {
+			$scope.faileddeliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen2 = true;
+    			loadFailedChart(data);
+    		}
+    		else {
+    			$scope.isopen2 = false;
+    		}	
+		});		
 	}
-	function getDailyFailedTotals(weekstart, category) {
-   		var d = $q.defer();
-   		var result2;
-   		if (category == "All") {
-   			result2 = DailyCategoryFailedTotals.get({weekstart: weekstart}, function() {
-        		d.resolve(result2);
-   			});
-   		}
-   		else {
-   			result2 = DailyServiceFailedTotals.get({weekstart: weekstart, category: category}, function() {
-        		d.resolve(result2);
-   			});
-   		}	
-   		return d.promise;
+	else {
+		DailyServiceTotals.get({weekstart: weekstartInput, category: $routeParams.category}, function(data) {
+			$scope.deliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen1 = true;
+    			loadSuccessfulChart(data);
+    		}
+    		else {
+    			$scope.isopen1 = false;
+    		}	
+		});
+		DailyServiceFailedTotals.get({weekstart: weekstartInput, category: $routeParams.category}, function(data) {
+			$scope.faileddeliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen2 = true;
+    			loadFailedChart(data);
+    		}
+    		else {
+    			$scope.isopen2 = false;
+    		}	
+
+		});		
 	}
-	function getDailyFailedReasonTotals(weekstart, category) {
-   		var d = $q.defer();
-   		var result3 = DailyFailedReasonTotals.get({weekstart: weekstart, category: category}, function() {
-        	d.resolve(result3);
-   		});
-   		return d.promise;
-	}	
-	$q.all([
-   		getDailyTotals(weekstartInput, $routeParams.category),
-   		getDailyFailedTotals(weekstartInput, $routeParams.category),
-   		getDailyFailedReasonTotals(weekstartInput, $routeParams.category)
-	]).then(function(data) {
-		$scope.deliverytotal = data[0].totals;
-		if (data[0].totals == 0) {
-			$scope.isopen1 = false;
-		}
-    	$scope.chart = data[0].dailytotals; 
+	function loadSuccessfulChart(data) {
+    	$scope.chart = data.dailytotals; 
     	$scope.chartOptions =  {
     		stackSeries: true,
         	seriesDefaults:{
             	renderer:jQuery.jqplot.BarRenderer,
             	rendererOptions: {fillToZero: true},
           	},
-        	series: data[0].category,
+        	series: data.category,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -79,7 +77,7 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[0].days
+               		ticks: data.days
             	},
             },	
     		highlighter: {
@@ -89,19 +87,17 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
            		tooltipContentEditor:tooltipContentEditor 
     		},
     	};
-
-    	$scope.faileddeliverytotal = data[1].totals;
-    	if (data[1].totals == 0) {
-			$scope.isopen2 = false;
-		}
-    	$scope.chart2 = data[1].dailytotals;     	
+		
+	}
+	function loadFailedChart(data) {
+    	$scope.chart2 = data.dailytotals;     	
     	$scope.chartOptions2 =  {
     		stackSeries: true,
         	seriesDefaults:{
             	renderer:jQuery.jqplot.BarRenderer,
             	rendererOptions: {fillToZero: true},
         	},
-        	series: data[1].category,
+        	series: data.category,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -109,7 +105,7 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[1].days
+               		ticks: data.days
             	},
 
         	},
@@ -119,12 +115,21 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
             	tooltipLocation: 'ne',  // location of tooltip: n, ne, e, se, s, sw, w, nw.
            		tooltipContentEditor:tooltipContentEditor 
     		},        	
-    	}; 
-    	$scope.failedreasonstotal = data[2].totals;   	
-    	if (data[2].totals == 0) {
-			$scope.isopen3 = false;
-		}
-    	$scope.chart3 = data[2].dailytotals;     	
+    	}; 		
+	}
+
+   	DailyFailedReasonTotals.get({weekstart: weekstartInput, category: $routeParams.category}, function(data) {
+		$scope.failedreasonstotal = data.totals;
+		if (data.totals > 0) {
+			$scope.isopen3 = true;
+    		loadFailedReasonChart(data);
+    	}
+    	else {
+    		$scope.isopen3 = false;
+    	}	
+   	});
+	function loadFailedReasonChart(data) {
+    	$scope.chart3 = data.dailytotals;     	
     	$scope.chartOptions3 =  {
     		stackSeries: true,
         	seriesDefaults:{
@@ -132,7 +137,7 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
             	rendererOptions: {fillToZero: true},
 	
         	},
-        	series: data[2].exception,
+        	series: data.exception,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -140,7 +145,7 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[2].days
+               		ticks: data.days
             	},
 
         	},
@@ -151,6 +156,6 @@ dailyControllers.controller('DailyCtrl', ['$scope', 'DailyCategoryTotals', 'Dail
            		tooltipContentEditor:tooltipContentEditor 
     		},        	
     	};    	    	
-	});	
+	}
 }]);
 

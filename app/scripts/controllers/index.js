@@ -2,8 +2,11 @@
 
 var indexControllers = angular.module('indexControllers', []);
 
-indexControllers.controller('NavCtrl', ['$scope', '$route', '$location', 'ServiceCategories',
-  function($scope, $route, $location, ServiceCategories) {
+indexControllers.controller('NavCtrl', ['$scope', '$route', '$location', 'ServiceCategories', 'Activity',
+  function($scope, $route, $location, ServiceCategories, Activity) {
+$scope.hasActivity = function() {
+	return Activity.hasActivity();
+};  	
 $scope.isActive = function (loadedView) {
 	if (!$route.current) { return false;}
      var active = (loadedView === $route.current.loadedView);

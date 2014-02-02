@@ -27,3 +27,7 @@ dailyService.factory('DailyFailedReasonTotals', ['$resource',
   function($resource){
     return $resource('dailyfailedreasontotalsbyexception/:weekstart/:category', {}, {});
   }]);
+dailyService.factory('DayTotalsList', ['$resource',
+  function($resource){
+    return $resource('daytotalslisting/:date', {}, {});
+  }]);

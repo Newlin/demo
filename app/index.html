@@ -14,6 +14,8 @@
         <!-- build:css(.tmp) styles/main.css -->
         <link rel="stylesheet" href="styles/bootstrap.css">
         <link rel="stylesheet" href="styles/jquery.jqplot.css">
+        <link rel="stylesheet" href="styles/ng-grid.css">
+        <link rel="stylesheet" href="styles/main.css">
         <!-- endbuild -->
     <style>
       body {
@@ -37,7 +39,7 @@
     <![endif]-->
 
     <!-- Add your site or application content here -->
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" ng-controller="NavCtrl">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -46,9 +48,9 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">eDelivery Reporting</a>
+          <a class="navbar-brand" href="#">eDelivery Reporting<span class="label label-info" ng-show="hasActivity()">New Activity</span></a>
         </div>
-        <div class="collapse navbar-collapse" ng-controller="NavCtrl">
+        <div class="collapse navbar-collapse">
   
           <ul class="nav navbar-nav">
             <li  ng-class="{ active: isActive('daily') }"><a href="#daily/{{dt | date:'fullDate' }}/{{category}}">Daily</a></li>
@@ -103,6 +105,7 @@
     	<script src="bower_components/jqplot/plugins/jqplot.barRenderer.js"></script>
     	<script src="bower_components/jqplot/plugins/jqplot.categoryAxisRenderer.js"></script>
     	<script src="bower_components/jqplot/plugins/jqplot.highlighter.js"></script>
+    	<script src="bower_components/ng-grid/build/ng-grid.js"></script>
     	<script src="bower_components/angular-ui-chart/src/chart.js"</script>          
         <script src="bower_components/bootstrap/js/affix.js"></script>
         <script src="bower_components/bootstrap/js/alert.js"></script>
@@ -141,6 +144,7 @@
         <script src="scripts/services/dailyService.js"></script>
         <script src="scripts/services/indexService.js"></script>
 		<script src="scripts/services/utilService.js"></script>
+		<script src="scripts/services/activityService.js"></script>
         <!-- endbuild -->
 </body>
 </html>

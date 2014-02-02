@@ -8,9 +8,10 @@ var mongo = require('mongodb');
 
 var express = require('express');
 //var mongoskin = require('mongoskin');
-//mongodb://newlin:Mike0526@ds027409.mongolab.com:27409/edelivery
-//localhost:27027
+//mongodb://newlin/:Mike0526@ds027409.mongolab.com:27409/edelivery
+//localhost:27017
 var db = require('mongoskin').db('mongodb://newlin:Mike0526@ds027709.mongolab.com:27709/edelivery', {w:1});
+//var db = require('mongoskin').db('localhost:27017/edelivery', {w:1});
 var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
@@ -44,6 +45,11 @@ app.get('/servicecategories', function(req,res){
 app.get('/services', function(req,res){
 	db.collection('services').find().limit(50).toArray(function(error, services) {
 		res.json(services);
+	});
+});
+app.get('/historyactivity', function(req,res){
+	db.collection('history_activity').findOne(function(error, activity) {
+		res.json(activity);
 	});
 });
 app.get('/monthlytotalsbycategory/:year',function(req,res){
@@ -816,7 +822,59 @@ app.get('/dailyfailedreasontotalsbyexception/:weekstart/:category',function(req,
 			res.json(data);		
  		});
 });
+app.get('/daytotalslisting/:date',function(req,res){
+	var keyf = function(doc) { return {date: doc.date, service_category: doc.service_category, service: doc.service, delivery_exception: doc.delivery_exception};} ;
+  	var reduce = function ( curr, result ) {  result.total += curr.total; };
+  	var condition = {};
+  	condition.date = new mongo.Long(req.params.date);
+	var data = {};
+	data.listing = [];
+	data.delivered_totals = 0;
+	data.failed_totals = 0;
+	db.collection('history').group(keyf, condition,{"total":0},reduce,true,		
+  		function(e,results) {
+  			//results.sort(function(a, b) { return parseInt(a.day) - parseInt(b.day); });
 
+   			async.forEachSeries(results,
+  				function (element , callback){
+  					db.collection('service_category').findOne({_id: element.service_category}, function(err, doc) {
+						if (err) {
+							element.category_description = 'No Description';
+						}
+						else {
+							element.category_description = doc.description;
+						} 
+ 						db.collection('services').findOne({_id: element.service}, function(err, doc) {
+							if (err) {
+								element.service_description = 'No Description';
+							}
+							else {
+								element.service_description = doc.description;
+							} 
+							if (element.delivery_exception.indexOf("opted out") > 0) {
+								element.delivery_exception = "Freemonee opt out";
+							}							
+							data.listing.push(element);
+							if (element.delivery_exception == "") {
+								data.delivered_totals += element.total;
+							}
+							else {
+								data.failed_totals += element.total;
+							}	
+
+							callback(null);
+						});						
+					});
+  				},	  				
+  				function(err) {
+  					if (err) {
+						data = null;
+  					}
+        			res.json(data);
+        		}	
+  			);	
+ 		});
+});
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });

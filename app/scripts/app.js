@@ -3,6 +3,7 @@
 angular.module('edeliveryApp', [
   'ui.bootstrap',
   'ui.chart',
+  'ngGrid',
   'ngCookies',
   'ngResource',
   'ngSanitize',
@@ -16,6 +17,7 @@ angular.module('edeliveryApp', [
   'weeklyControllers',
   'dailyControllers',
   'edeliveryControllers',
+  'activityService',
   'utilService'
 
 ]).config(function ($routeProvider) {

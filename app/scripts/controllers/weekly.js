@@ -2,11 +2,14 @@
 
 var weeklyControllers = angular.module('weeklyControllers', []);
 
-weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'WeeklyCategoryFailedTotals', 'WeeklyServiceTotals', 'WeeklyServiceFailedTotals', 'WeeklyFailedReasonTotals', 'DateUtil', '$routeParams', '$q',
-  function($scope, WeeklyCategoryTotals, WeeklyCategoryFailedTotals, WeeklyServiceTotals, WeeklyServiceFailedTotals, WeeklyFailedReasonTotals, DateUtil, $routeParams, $q) {
+weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'WeeklyCategoryFailedTotals', 'WeeklyServiceTotals', 'WeeklyServiceFailedTotals', 'WeeklyFailedReasonTotals', 'DateUtil', '$routeParams', 'Activity', 'ActivityService',
+  function($scope, WeeklyCategoryTotals, WeeklyCategoryFailedTotals, WeeklyServiceTotals, WeeklyServiceFailedTotals, WeeklyFailedReasonTotals, DateUtil, $routeParams, Activity, ActivityService) {
   	$scope.isopen1 = true;
   	$scope.isopen2 = true;
   	$scope.isopen3 = true;
+    ActivityService.get(function(activity) {
+   		Activity.setLastUpdate(activity.last_update);
+   	});	
   	function tooltipContentEditor(str, seriesIndex, pointIndex, plot) {
    		// display series_label, x-axis_tick, y-axis value
    		return plot.series[seriesIndex]["label"] + ", " + plot.data[seriesIndex][pointIndex];
@@ -20,63 +23,60 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
 
 	$scope.monthyear = DateUtil.dateFormat(selectedDt, "MM-YYYY");
 	
-	function getWeeklyTotals(selectedDt, category) {
-   		var d = $q.defer();
-   		var result;
-   		if (category == "All") {
-   			
-   			result = WeeklyCategoryTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1}, function() {
-        		d.resolve(result);
-        	});
-        }
-        else {
-   			result = WeeklyServiceTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: category}, function() {
-        		d.resolve(result);
-        	});        	
-        }	
-   		return d.promise;
+	if ($routeParams.category == "All") {
+		WeeklyCategoryTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1}, function(data) {
+			$scope.deliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen1 = true;
+    			loadSuccessfulChart(data);
+    		}
+    		else {
+    			$scope.isopen1 = false;
+    		}	
+		});
+		WeeklyCategoryFailedTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1}, function(data) {
+			$scope.faileddeliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen2 = true;
+    			loadFailedChart(data);
+    		}
+    		else {
+    			$scope.isopen2 = false;
+    		}	
+		});		
 	}
-	function getWeeklyFailedTotals(selectedDt, category) {
-   		var d = $q.defer();
-   		var result2;
-   		if (category == "All") {
-   			
-   			result2 = WeeklyCategoryFailedTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1}, function() {
-        		d.resolve(result2);
-        	});
-        }
-        else {
-   			result2 = WeeklyServiceFailedTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: category}, function() {
-        		d.resolve(result2);
-        	});        	
-        }		
+	else {
+		WeeklyServiceTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: $routeParams.category}, function(data) {
+			$scope.deliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen1 = true;
+    			loadSuccessfulChart(data);
+    		}
+    		else {
+    			$scope.isopen1 = false;
+    		}	
+		});
+		WeeklyServiceFailedTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: $routeParams.category}, function(data) {
+			$scope.faileddeliverytotal = data.totals;
+			if (data.totals > 0) {
+				$scope.isopen2 = true;
+    			loadFailedChart(data);
+    		}
+    		else {
+    			$scope.isopen2 = false;
+    		}	
 
-   		return d.promise;
+		});		
 	}
-	function getWeeklyFailedReasonTotals(selectedDt, category) {
-   		var d = $q.defer();
-   		var result3 = WeeklyFailedReasonTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: category}, function() {
-        	d.resolve(result3);
-   		});
-   		return d.promise;
-	}	
-	$q.all([
-   		getWeeklyTotals(selectedDt, $routeParams.category),
-   		getWeeklyFailedTotals(selectedDt, $routeParams.category),
-   		getWeeklyFailedReasonTotals(selectedDt, $routeParams.category)
-	]).then(function(data) {
-		$scope.deliverytotal = data[0].totals;
-		if (data[0].totals == 0) {
-			$scope.isopen1 = false;
-		}
-    	$scope.chart = data[0].weeklytotals; 
+	function loadSuccessfulChart(data) {
+    	$scope.chart = data.weeklytotals; 
     	$scope.chartOptions =  {
     		stackSeries: true,
         	seriesDefaults:{
             	renderer:jQuery.jqplot.BarRenderer,
             	rendererOptions: {fillToZero: true},
           	},
-        	series: data[0].category,
+        	series: data.category,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -84,7 +84,7 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[0].weekstart
+               		ticks: data.weekstart
             	},
             },	
     		highlighter: {
@@ -94,18 +94,17 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
            		tooltipContentEditor:tooltipContentEditor 
     		},
     	};
-    	$scope.faileddeliverytotal = data[1].totals;
-    	if (data[1].totals == 0) {
-			$scope.isopen2 = false;
-		}
-    	$scope.chart2 = data[1].weeklytotals;     	
+		
+	}
+	function loadFailedChart(data) {
+    	$scope.chart2 = data.weeklytotals;     	
     	$scope.chartOptions2 =  {
     		stackSeries: true,
         	seriesDefaults:{
             	renderer:jQuery.jqplot.BarRenderer,
             	rendererOptions: {fillToZero: true},
         	},
-        	series: data[1].category,
+        	series: data.category,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -113,7 +112,7 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[1].weekstart
+               		ticks: data.weekstart
             	},
 
         	},
@@ -123,12 +122,21 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
             	tooltipLocation: 'ne',  // location of tooltip: n, ne, e, se, s, sw, w, nw.
            		tooltipContentEditor:tooltipContentEditor 
     		},        	
-    	};  
-    	$scope.failedreasonstotal = data[2].totals; 
-		if (data[2].totals == 0) {
-			$scope.isopen3 = false;
-		}    	 	
-    	$scope.chart3 = data[2].weeklytotals;     	
+    	}; 		
+	}
+
+   	WeeklyFailedReasonTotals.get({year: selectedDt.getFullYear(), month: selectedDt.getMonth() + 1, category: $routeParams.category}, function(data) {
+		$scope.failedreasonstotal = data.totals;
+		if (data.totals > 0) {
+			$scope.isopen3 = true;
+    		loadFailedReasonChart(data);
+    	}
+    	else {
+    		$scope.isopen3 = false;
+    	}	
+   	});
+	function loadFailedReasonChart(data) {
+    	$scope.chart3 = data.weeklytotals;     	
     	$scope.chartOptions3 =  {
     		stackSeries: true,
         	seriesDefaults:{
@@ -136,7 +144,7 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
             	rendererOptions: {fillToZero: true},
 	
         	},
-        	series: data[2].exception,
+        	series: data.exception,
         	legend: {
             	show: true,
             	placement: 'outsideGrid'
@@ -144,7 +152,7 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
         	axes: {
             	xaxis: {
                 	renderer: jQuery.jqplot.CategoryAxisRenderer,
-               		ticks: data[2].weekstart
+               		ticks: data.weekstart
             	},
 
         	},
@@ -155,5 +163,5 @@ weeklyControllers.controller('WeeklyCtrl', ['$scope', 'WeeklyCategoryTotals', 'W
            		tooltipContentEditor:tooltipContentEditor 
     		},        	
     	};    	    	
-	});	
+	}
 }]);
