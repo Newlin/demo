@@ -1,6 +1,19 @@
 'use strict';
 
 var indexControllers = angular.module('indexControllers', []);
+indexControllers.controller('LoginCtrl', function ($rootScope, $scope, auth) {
+     $rootScope.$on('auth:forbidden', function (event, response) {
+        // handle the case where the JWT is not valid (401 status code)
+        auth.signout();
+        $location.path('/login');        
+    });
+  auth.signin();
+});
+
+indexControllers.controller('LogoutCtrl', ['$scope', 'auth', '$location', function ($scope, auth, $location) {
+  auth.signout();
+  $location.path("/login");
+}]);
 
 indexControllers.controller('NavCtrl', ['$scope', '$route', '$location', 'ServiceCategories', 'Activity',
   function($scope, $route, $location, ServiceCategories, Activity) {

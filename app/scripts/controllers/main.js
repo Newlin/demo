@@ -3,9 +3,10 @@
 var edeliveryControllers = angular.module('edeliveryControllers', []);
 
 
-edeliveryControllers.controller('MainCtrl', ['$scope', 'DayTotalsList', 'DateUtil', 'Activity',
-  function($scope, DayTotalsList, DateUtil, Activity) {
+edeliveryControllers.controller('MainCtrl', ['$scope', 'DayTotalsList', 'DateUtil', 'Activity', 'auth',
+  function($scope, DayTotalsList, DateUtil, Activity, auth) {
 
+  	$scope.user = auth.profile;
 	Activity.setLastViewed(new Date());
 	$scope.today = DateUtil.dateFormat(new Date(), "MM-DD-YYYY");
 	$scope.lastload = Activity.getLastUpdate().toLocaleString();

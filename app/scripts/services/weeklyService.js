@@ -5,25 +5,25 @@ var weeklyService = angular.module('weeklyService', ['ngResource']);
 
 weeklyService.factory('WeeklyCategoryTotals', ['$resource',
   function($resource){
-    return $resource('weeklytotalsbycategory/:year/:month', {}, {});
+    return $resource('api/weeklytotalsbycategory/:year/:month', {}, {});
   }]);
   
 weeklyService.factory('WeeklyCategoryFailedTotals', ['$resource',
   function($resource){
-    return $resource('weeklyfailedtotalsbycategory/:year/:month', {}, {});
+    return $resource('api/weeklyfailedtotalsbycategory/:year/:month', {}, {});
   }]);
   
 weeklyService.factory('WeeklyServiceTotals', ['$resource',
   function($resource){
-    return $resource('weeklytotalsbyservice/:year/:month/:category', {}, {});
+    return $resource('api/weeklytotalsbyservice/:year/:month/:category', {}, {});
   }]);
   
 weeklyService.factory('WeeklyServiceFailedTotals', ['$resource',
   function($resource){
-    return $resource('weeklyfailedtotalsbyservice/:year/:month/:category', {}, {});
+    return $resource('api/weeklyfailedtotalsbyservice/:year/:month/:category', {}, {});
   }]);
 
 weeklyService.factory('WeeklyFailedReasonTotals', ['$resource',
   function($resource){
-    return $resource('weeklyfailedreasontotalsbyexception/:year/:month/:category', {}, {});
+    return $resource('api/weeklyfailedreasontotalsbyexception/:year/:month/:category', {}, {});
   }]);

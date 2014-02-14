@@ -18,11 +18,16 @@ angular.module('edeliveryApp', [
   'dailyControllers',
   'edeliveryControllers',
   'activityService',
-  'utilService'
-
-]).config(function ($routeProvider) {
+  'utilService',
+  'auth0',
+  'authInterceptor'
+]).config(function ($routeProvider, authProvider) {
     $routeProvider
-      .when('/main', {
+      .when('/login', {
+        templateUrl: 'views/login.html',
+        controller: 'LoginCtrl',
+      })    
+      .when('/', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl',
       })
@@ -41,7 +46,17 @@ angular.module('edeliveryApp', [
         controller: 'MonthlyCtrl',
         loadedView: 'monthly'
       })    
+      .when('/logout', {
+        templateUrl: 'views/logout.html',
+        controller: 'LogoutCtrl',
+      })      
       .otherwise({
-        redirectTo: '/main'
+        redirectTo: '/login'
       });
+    authProvider.init({
+      domain: 'mikenewlin.auth0.com',
+      clientID: 'Bl2CaO5KvF36RoOHJmdPJUdIcWZOGMoY',
+      callbackURL: 'http://localhost:3000/',
+      callbackOnLocationHash: true
+     });       
   });

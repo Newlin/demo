@@ -2,23 +2,26 @@
 /**
  * Module dependencies.
  */
-require('newrelic');
+//require('newrelic');
 var async = require("async");
 var mongo = require('mongodb');
-
+var jwt = require('express-jwt');
 var express = require('express');
 //var mongoskin = require('mongoskin');
 //mongodb://newlin/:Mike0526@ds027409.mongolab.com:27409/edelivery
 //localhost:27017
-var db = require('mongoskin').db('mongodb://newlin:Mike0526@ds027709.mongolab.com:27709/edelivery', {w:1});
-//var db = require('mongoskin').db('localhost:27017/edelivery', {w:1});
+//var db = require('mongoskin').db('mongodb://newlin:Mike0526@ds027709.mongolab.com:27709/edelivery', {w:1});
+var db = require('mongoskin').db('localhost:27017/edelivery', {w:1});
 var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
 var app = express();
-
+var authenticate = jwt({
+    secret: new Buffer('sBFSu5Z2bUM8Y__V4ISISlelrKK8YlfClmHOmliucQdUdyHfszVbhY6dJ7j3qIPs', 'base64'),
+    audience: 'Bl2CaO5KvF36RoOHJmdPJUdIcWZOGMoY'
+});
 // all environments 24.197.95.51
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
@@ -30,29 +33,33 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'app')));
 //app.use(express.static(path.join(__dirname, 'test')));
 
 // development only
 if ('development' == app.get('env')) {
   app.use(express.errorHandler());
 }
-app.get('/servicecategories', function(req,res){
+app.configure(function() {
+    app.use('/api', authenticate);
+});
+
+app.get('/api/servicecategories', function(req,res){
 	db.collection('service_category').find().limit(50).toArray(function(error, categories) {
 		res.json(categories);
 	});
 });
-app.get('/services', function(req,res){
+app.get('/api/services', function(req,res){
 	db.collection('services').find().limit(50).toArray(function(error, services) {
 		res.json(services);
 	});
 });
-app.get('/historyactivity', function(req,res){
+app.get('/api/historyactivity', function(req,res){
 	db.collection('history_activity').findOne(function(error, activity) {
 		res.json(activity);
 	});
 });
-app.get('/monthlytotalsbycategory/:year',function(req,res){
+app.get('/api/monthlytotalsbycategory/:year',function(req,res){
   	var keyf = function(doc) { return {month: doc.month, service_category: doc.service_category};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -102,7 +109,7 @@ app.get('/monthlytotalsbycategory/:year',function(req,res){
   			);	
  		});
 });
-app.get('/monthlyfailedtotalsbycategory/:year',function(req,res){
+app.get('/api/monthlyfailedtotalsbycategory/:year',function(req,res){
   	var keyf = function(doc) { return {month: doc.month, service_category: doc.service_category};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -153,7 +160,7 @@ app.get('/monthlyfailedtotalsbycategory/:year',function(req,res){
   			);	
  		});
 });
-app.get('/monthlytotalsbyservice/:year/:category',function(req,res){
+app.get('/api/monthlytotalsbyservice/:year/:category',function(req,res){
   	var keyf = function(doc) { return {month: doc.month, service: doc.service};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -204,7 +211,7 @@ app.get('/monthlytotalsbyservice/:year/:category',function(req,res){
   			);	
  		});
 });
-app.get('/monthlyfailedtotalsbyservice/:year/:category',function(req,res){
+app.get('/api/monthlyfailedtotalsbyservice/:year/:category',function(req,res){
   	var keyf = function(doc) { return {month: doc.month, service: doc.service};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -256,7 +263,7 @@ app.get('/monthlyfailedtotalsbyservice/:year/:category',function(req,res){
   			);	
  		});
 });
-app.get('/monthlyfailedreasontotalsbyexception/:year/:category',function(req,res){
+app.get('/api/monthlyfailedreasontotalsbyexception/:year/:category',function(req,res){
   	var keyf = function(doc) { return {month: doc.month, delivery_exception: doc.delivery_exception};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -296,7 +303,7 @@ app.get('/monthlyfailedreasontotalsbyexception/:year/:category',function(req,res
 			res.json(data);			
  	});
 });
-app.get('/weeklytotalsbycategory/:year/:month',function(req,res){
+app.get('/api/weeklytotalsbycategory/:year/:month',function(req,res){
   	var keyf = function(doc) { return {week_start: doc.week_start, service_category: doc.service_category};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -353,7 +360,7 @@ app.get('/weeklytotalsbycategory/:year/:month',function(req,res){
   			);	
  		});
 });
-app.get('/weeklyfailedtotalsbycategory/:year/:month',function(req,res){
+app.get('/api/weeklyfailedtotalsbycategory/:year/:month',function(req,res){
   	var keyf = function(doc) { return {week_start: doc.week_start, service_category: doc.service_category};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -411,7 +418,7 @@ app.get('/weeklyfailedtotalsbycategory/:year/:month',function(req,res){
   			);		
  		});
 });
-app.get('/weeklytotalsbyservice/:year/:month/:category',function(req,res){
+app.get('/api/weeklytotalsbyservice/:year/:month/:category',function(req,res){
   	var keyf = function(doc) { return {week_start: doc.week_start, service: doc.service};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -469,7 +476,7 @@ app.get('/weeklytotalsbyservice/:year/:month/:category',function(req,res){
   			);	
  		});
 });
-app.get('/weeklyfailedtotalsbyservice/:year/:month/:category',function(req,res){
+app.get('/api/weeklyfailedtotalsbyservice/:year/:month/:category',function(req,res){
   	var keyf = function(doc) { return {week_start: doc.week_start, service: doc.service};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -528,7 +535,7 @@ app.get('/weeklyfailedtotalsbyservice/:year/:month/:category',function(req,res){
   			);		
  		});
 });
-app.get('/weeklyfailedreasontotalsbyexception/:year/:month/:category',function(req,res){
+app.get('/api/weeklyfailedreasontotalsbyexception/:year/:month/:category',function(req,res){
   	var keyf = function(doc) { return {week_start: doc.week_start, delivery_exception: doc.delivery_exception};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -578,7 +585,7 @@ app.get('/weeklyfailedreasontotalsbyexception/:year/:month/:category',function(r
  		});
 });
 
-app.get('/dailytotalsbycategory/:weekstart',function(req,res){
+app.get('/api/dailytotalsbycategory/:weekstart',function(req,res){
 	var keyf = function(doc) { return {day: doc.day, date: doc.date, service_category: doc.service_category};} ;
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -628,7 +635,7 @@ app.get('/dailytotalsbycategory/:weekstart',function(req,res){
   			);	
  		});
 });
-app.get('/dailyfailedtotalsbycategory/:weekstart',function(req,res){
+app.get('/api/dailyfailedtotalsbycategory/:weekstart',function(req,res){
   	var keyf = function(doc) { return {day: doc.day, date: doc.date, service_category: doc.service_category};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -679,7 +686,7 @@ app.get('/dailyfailedtotalsbycategory/:weekstart',function(req,res){
   			);	
  		});
 });
-app.get('/dailytotalsbyservice/:weekstart/:category',function(req,res){
+app.get('/api/dailytotalsbyservice/:weekstart/:category',function(req,res){
 	var keyf = function(doc) { return {day: doc.day, date: doc.date, service: doc.service};} ;
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -730,7 +737,7 @@ app.get('/dailytotalsbyservice/:weekstart/:category',function(req,res){
   			);	
  		});
 });
-app.get('/dailyfailedtotalsbyservice/:weekstart/:category',function(req,res){
+app.get('/api/dailyfailedtotalsbyservice/:weekstart/:category',function(req,res){
   	var keyf = function(doc) { return {day: doc.day, date: doc.date, service: doc.service};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -782,7 +789,7 @@ app.get('/dailyfailedtotalsbyservice/:weekstart/:category',function(req,res){
   			);	
  		});
 });
-app.get('/dailyfailedreasontotalsbyexception/:weekstart/:category',function(req,res){
+app.get('/api/dailyfailedreasontotalsbyexception/:weekstart/:category',function(req,res){
   	var keyf = function(doc) { return {day: doc.day, date: doc.date, delivery_exception: doc.delivery_exception};} ; 
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};
@@ -822,7 +829,7 @@ app.get('/dailyfailedreasontotalsbyexception/:weekstart/:category',function(req,
 			res.json(data);		
  		});
 });
-app.get('/daytotalslisting/:date',function(req,res){
+app.get('/api/daytotalslisting/:date',function(req,res){
 	var keyf = function(doc) { return {date: doc.date, service_category: doc.service_category, service: doc.service, delivery_exception: doc.delivery_exception};} ;
   	var reduce = function ( curr, result ) {  result.total += curr.total; };
   	var condition = {};

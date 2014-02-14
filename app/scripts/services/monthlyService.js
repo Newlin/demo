@@ -5,27 +5,27 @@ var monthlyService = angular.module('monthlyService', ['ngResource']);
 
 monthlyService.factory('MonthlyCategoryTotals', ['$resource',
   function($resource){
-    return $resource('monthlytotalsbycategory/:year', {}, {});
+    return $resource('api/monthlytotalsbycategory/:year', {}, {});
   }]);
   
 monthlyService.factory('MonthlyCategoryFailedTotals', ['$resource',
   function($resource){
-    return $resource('monthlyfailedtotalsbycategory/:year', {}, {});
+    return $resource('api/monthlyfailedtotalsbycategory/:year', {}, {});
   }]);
   
 monthlyService.factory('MonthlyServiceTotals', ['$resource',
   function($resource){
-    return $resource('monthlytotalsbyservice/:year/:category', {}, {});
+    return $resource('api/monthlytotalsbyservice/:year/:category', {}, {});
   }]);
   
 monthlyService.factory('MonthlyServiceFailedTotals', ['$resource',
   function($resource){
-    return $resource('monthlyfailedtotalsbyservice/:year/:category', {}, {});
+    return $resource('api/monthlyfailedtotalsbyservice/:year/:category', {}, {});
   }]);
 
 monthlyService.factory('MonthlyFailedReasonTotals', ['$resource',
   function($resource){
-    return $resource('monthlyfailedreasontotalsbyexception/:year/:category', {}, {});
+    return $resource('api/monthlyfailedreasontotalsbyexception/:year/:category', {}, {});
   }]);
 
     

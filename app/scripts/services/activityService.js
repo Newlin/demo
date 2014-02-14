@@ -27,5 +27,5 @@ app.service('Activity', function(){
 });
 app.factory('ActivityService', ['$resource',
   function($resource){
-    return $resource('historyactivity', {}, {});
+    return $resource('api/historyactivity', {}, {});
   }]);
