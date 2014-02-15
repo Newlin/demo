@@ -56,7 +56,7 @@ angular.module('edeliveryApp', [
     authProvider.init({
       domain: 'mikenewlin.auth0.com',
       clientID: 'Bl2CaO5KvF36RoOHJmdPJUdIcWZOGMoY',
-      callbackURL: 'http://localhost:3000/',
+      callbackURL: 'http://newlin-demo.herokuapp.com/',
       callbackOnLocationHash: true
      });       
   });
