@@ -2,11 +2,7 @@
 
 var indexControllers = angular.module('indexControllers', []);
 indexControllers.controller('LoginCtrl', function ($rootScope, $scope, auth) {
-     $rootScope.$on('auth:forbidden', function (event, response) {
-        // handle the case where the JWT is not valid (401 status code)
-        auth.signout();
-        $location.path('/login');        
-    });
+
   auth.signin();
 });
 
@@ -15,8 +11,12 @@ indexControllers.controller('LogoutCtrl', ['$scope', 'auth', '$location', functi
   $location.path("/login");
 }]);
 
-indexControllers.controller('NavCtrl', ['$scope', '$route', '$location', 'ServiceCategories', 'Activity',
-  function($scope, $route, $location, ServiceCategories, Activity) {
+indexControllers.controller('NavCtrl', ['auth', '$scope', '$route', '$location', 'ServiceCategories', 'Activity',
+  function(auth, $scope, $route, $location, ServiceCategories, Activity) {
+if (!auth.isAuthenticated) {
+  $location.path('/login');
+  return;
+}     
 $scope.hasActivity = function() {
 	return Activity.hasActivity();
 };  	
