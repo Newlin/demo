@@ -2,7 +2,7 @@
 /**
  * Module dependencies.
  */
-//require('newrelic');
+require('newrelic');
 var async = require("async");
 var mongo = require('mongodb');
 var jwt = require('express-jwt');
@@ -10,8 +10,8 @@ var express = require('express');
 //var mongoskin = require('mongoskin');
 //mongodb://newlin/:Mike0526@ds027409.mongolab.com:27409/edelivery
 //localhost:27017
-//var db = require('mongoskin').db('mongodb://newlin:Mike0526@ds027709.mongolab.com:27709/edelivery', {w:1});
-var db = require('mongoskin').db('localhost:27017/edelivery', {w:1});
+var db = require('mongoskin').db('mongodb://newlin:Mike0526@ds027709.mongolab.com:27709/edelivery', {w:1});
+//var db = require('mongoskin').db('localhost:27017/edelivery', {w:1});
 var routes = require('./routes');
 var user = require('./routes/user');
 var http = require('http');
@@ -33,7 +33,7 @@ app.use(express.urlencoded());
 app.use(express.methodOverride());
 app.use(express.cookieParser('your secret here'));
 app.use(express.session());
-app.use(express.static(path.join(__dirname, 'app')));
+app.use(express.static(path.join(__dirname, 'publix')));
 //app.use(express.static(path.join(__dirname, 'test')));
 
 // development only
