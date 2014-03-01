@@ -13,7 +13,8 @@
     "bootstrap": "~3.0.3",
     "angular-route": "~1.2.9",
     "angular-ui-chart": "~0.0.1",
-    "ng-grid": "~2.0.7"
+    "ng-grid": "~2.0.7",
+    "jqplot": "*"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.9",

@@ -56,7 +56,7 @@ angular.module('edeliveryApp', [
     authProvider.init({
       domain: 'mikenewlin.auth0.com',
       clientID: 'Bl2CaO5KvF36RoOHJmdPJUdIcWZOGMoY',
-      callbackURL: 'http://newlin-demo.herokuapp.com',
+      callbackURL: 'https://demo-c9-mike_newlin.c9.io',
       callbackOnLocationHash: true
      });       
   });
